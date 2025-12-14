@@ -1,1 +1,2 @@
-This project uses Gemini and GitHub Actions to create a fully automated, serverless content generation pipeline. When a developer pushes a simple text file, the AI transforms the raw text into a professional, structured JSON output, and Vercel deploys the updated content to a live, professional UI. It's a great showcase for automation skills.
+This is the FINAL test of the two-repository pipeline. We are checking to see if Gemini can take this raw input, generate a JSON summary, commit it back to the repo, and then trigger Vercel to update the live website. Success means the project is complete!	
+
