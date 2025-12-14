@@ -5,14 +5,14 @@ on:
   push:
     branches:
       - main
-      - master # Include master for compatibility
+      - master
 
 jobs:
   generate_and_deploy:
     runs-on: ubuntu-latest
-    permissions: # <--- FIX for Error 1 (Permissions)
-      contents: write # <--- CRITICAL ADDITION
-    
+    permissions:
+      contents: write # CRITICAL FIX: Grants the bot permission to commit files
+
     # Define environment variables needed by the Python script
     env:
       VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
@@ -25,16 +25,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          # REMOVED 'cache: pip' here to fix Error 3 (Dependencies)
+          # Removed 'cache: pip' to fix pathing issues
 
       - name: 3. Install Python dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r ${{ github.workspace }}/requirements.txt # FIX: Uses absolute pathing
 
       - name: 4. Run AI Content Generator
         run: python process_ai.py
         env:
-          # Set the Gemini API Key from GitHub Secrets
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # <--- If this fails, the key is invalid (Error 2)
+          # CRITICAL: Passes the API key to the script's environment
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} 
 
       - name: 5. Commit and Push Generated Content
         # Commit the newly generated content_output.json back to the repo
@@ -42,10 +42,11 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add content_output.json
+          # Only commit if there are actual changes
           git commit -m "chore(ai): Auto-generated content update" || echo "No changes to commit"
           git push
 
       - name: 6. Trigger Vercel Deployment Hook
-        # Use the hook URL you provided to trigger the rebuild of the UI repo
+        # Triggers the rebuild of the frontend UI
         run: |
           curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
