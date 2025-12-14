@@ -49,4 +49,4 @@ jobs:
       - name: 6. Trigger Vercel Deployment Hook
         # Triggers the rebuild of the frontend UI
         run: |
-          curl -X POST https://api.vercel.com/v1/integrations/deploy/prj_hXdNyqZHgC9g1Fqyz4AA0UAuiUZr/i66VPLj4fl
+          https://api.vercel.com/v1/integrations/deploy/prj_hXdNyqZHgC9g1Fqyz4AA0UAuiUZr/griOa5AWJA
