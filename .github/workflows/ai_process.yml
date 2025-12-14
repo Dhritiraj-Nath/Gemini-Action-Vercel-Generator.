@@ -1,0 +1,49 @@
+name: AI Content Generator Pipeline
+
+# Trigger this workflow on pushes to the main branch
+on:
+  push:
+    branches:
+      - main
+      - master # Include master for compatibility
+
+jobs:
+  generate_and_deploy:
+    runs-on: ubuntu-latest
+
+    # Define environment variables needed by the Python script
+    env:
+      VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+
+    steps:
+      - name: 1. Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 3. Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: 4. Run AI Content Generator
+        run: python process_ai.py
+        env:
+          # Set the Gemini API Key from GitHub Secrets
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: 5. Commit and Push Generated Content
+        # Commit the newly generated content_output.json back to the repo
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add content_output.json
+          git commit -m "chore(ai): Auto-generated content update" || echo "No changes to commit"
+          git push
+
+      - name: 6. Trigger Vercel Deployment Hook
+        # Use the hook URL you provided to trigger the rebuild of the UI repo
+        run: |
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
